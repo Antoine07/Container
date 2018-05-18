@@ -1,10 +1,7 @@
-<?php
-
-namespace App;
+<?php namespace App;
 
 class Container
 {
-
     /**
      * @var array
      */
@@ -17,7 +14,6 @@ class Container
     public function set($k, $v)
     {
         if (isset($this->services[$k])) {
-
             throw new \RuntimeException(\sprintf('Cannot override frozen service "%s".', $k));
         }
 
@@ -30,12 +26,12 @@ class Container
      */
     public function get($k)
     {
-        if (!isset($this->services[$k])) {
+        if (!isset($this->services[$k]))
             throw new \InvalidArgumentException(\sprintf('unknow value: %s', $k));
-        }
-        if (is_callable($this->services[$k])) {
+
+        if (is_callable($this->services[$k]))
             return $this->services[$k]($this);
-        }
+
         return $this->services[$k];
     }
 

@@ -19,7 +19,6 @@ class ContainerTest extends TestCase
     }
 
     public function testAddService(){
-
         $this->container->set('Foo', function($c){
             return new \App\Services\Foo();
         });
@@ -27,6 +26,5 @@ class ContainerTest extends TestCase
         $this->assertInstanceOf(
             Foo::class, $this->container->get('Foo')
         );
-
     }
 }

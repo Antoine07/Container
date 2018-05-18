@@ -1,6 +1,4 @@
-<?php
-
-namespace App\Services;
+<?php namespace App\Services;
 
 class Baz
 {
