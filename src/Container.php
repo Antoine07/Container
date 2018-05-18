@@ -27,7 +27,7 @@ class Container
     public function get($k)
     {
         if (!isset($this->services[$k]))
-            throw new \InvalidArgumentException(\sprintf('unknow value: %s', $k));
+            throw new \InvalidArgumentException(\sprintf('service not found : %s', $k));
 
         if (is_callable($this->services[$k]))
             return $this->services[$k]($this);

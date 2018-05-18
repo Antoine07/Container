@@ -27,4 +27,12 @@ class ContainerTest extends TestCase
             Foo::class, $this->container->get('Foo')
         );
     }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage service not found : BadService
+     */
+    public function testExceptionServiceNotFound(){
+        $this->container->get('BadService');
+    }
 }
