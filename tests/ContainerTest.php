@@ -2,6 +2,8 @@
 
 use App\Container;
 use App\Services\Foo;
+use App\Services\Baz;
+use App\Services\SuperBar;
 use PHPUnit\Framework\TestCase;
 
 class ContainerTest extends TestCase
@@ -35,4 +37,63 @@ class ContainerTest extends TestCase
     public function testExceptionServiceNotFound(){
         $this->container->get('BadService');
     }
+
+    /**
+     * @expectedException \RuntimeException
+     * @expectedExceptionMessage Cannot override frozen service "Foo"
+     */
+    public function testExceptionCannotOverrideFrozenService(){
+
+        $this->container->set('Foo', function($c){
+            return new \App\Services\Foo();
+        });
+
+        $this->container->set('Foo', function($c){
+            return new \App\Services\Foo();
+        });
+    }
+
+    public function testConfigurationService(){
+        $this->container->set('baz.config', ['a' => 'A', 'b' => 'B']);
+
+        $this->container->set('Baz', function($c){
+            return new \App\Services\Baz($c->get('baz.config'));
+        });
+
+        $serviceBaz = $this->container->get('Baz');
+        $this->assertInstanceOf(
+            Baz::class, $serviceBaz
+        );
+
+        $this->assertArrayHasKey('a', $serviceBaz->getConfig());
+        $this->assertArrayHasKey('b', $serviceBaz->getConfig());
+
+        $this->assertEquals(['a' => 'A', 'b' => 'B'],$this->container->get('baz.config'));
+        $this->assertEquals(['a' => 'A', 'b' => 'B'],$this->container->get('Baz')->getConfig());
+    }
+
+    public function testSuperBar(){
+
+        $this->container->set('baz.config', ['a' => 'A', 'b' => 'B']);
+        $this->container->set('Baz', function($c){
+            return new \App\Services\Baz($c->get('baz.config'));
+        });
+
+        $this->container->set('Bar', function($c){
+            return new \App\Services\Bar($c->get('Baz'));
+        } );
+
+        $this->container->set('superbar.config', ['a' => 'A']);
+
+        $this->container->set('SuperBar', function($c){
+            return  new \App\Services\SuperBar($c->get('Bar'), $c->get('Baz'), $c->get('superbar.config'));
+        });
+
+        $serviceSuperBar = $this->container->get('SuperBar');
+
+        $this->assertInstanceOf(
+            SuperBar::class, $serviceSuperBar
+        );
+    }
+
 }
