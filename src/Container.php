@@ -37,12 +37,37 @@ class Container
 
     /**
      * @param string $key
-     * @param \Closure $callable
-     * @return \Closure
+     * @return mixed
      */
-    public function singleton(string $key, \Closure $callable)
+    public function singleton(string $key)
     {
+        static $o;
+        static $serviceKey;
 
+
+        if (!isset($this->services[$key]) or !is_callable($this->services[$key]))
+            throw new \InvalidArgumentException(\sprintf('service not found or not callable : %s', $key));
+
+        if (is_null($o) or $key !== $serviceKey) {
+            $o = $this->services[$key]($this);
+            $serviceKey = $key;
+
+            return $o;
+        }
+
+        return $o;
+    }
+
+    // à tester pour voir si ça marche !!!! J'attends vos retour
+    public function asShared(\Closure $callable)
+    {
+        return function ($c) use ($callable) {
+            static $o;
+            if (is_null($o)) {
+                $o = $callable($c);
+            }
+            return $o;
+        };
     }
 
 }

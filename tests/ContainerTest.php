@@ -10,18 +10,21 @@ class ContainerTest extends TestCase
 {
     private $container;
 
-    public function setUp(){
+    public function setUp()
+    {
         $this->container = new Container();
     }
 
-    public function testInitContainer(){
+    public function testInitContainer()
+    {
         $this->assertInstanceOf(
             Container::class, $this->container
         );
     }
 
-    public function testAddService(){
-        $this->container->set('Foo', function($c){
+    public function testAddService()
+    {
+        $this->container->set('Foo', function ($c) {
             return new \App\Services\Foo();
         });
 
@@ -34,7 +37,8 @@ class ContainerTest extends TestCase
      * @expectedException \InvalidArgumentException
      * @expectedExceptionMessage service not found : BadService
      */
-    public function testExceptionServiceNotFound(){
+    public function testExceptionServiceNotFound()
+    {
         $this->container->get('BadService');
     }
 
@@ -42,21 +46,23 @@ class ContainerTest extends TestCase
      * @expectedException \RuntimeException
      * @expectedExceptionMessage Cannot override frozen service "Foo"
      */
-    public function testExceptionCannotOverrideFrozenService(){
+    public function testExceptionCannotOverrideFrozenService()
+    {
 
-        $this->container->set('Foo', function($c){
+        $this->container->set('Foo', function ($c) {
             return new \App\Services\Foo();
         });
 
-        $this->container->set('Foo', function($c){
+        $this->container->set('Foo', function ($c) {
             return new \App\Services\Foo();
         });
     }
 
-    public function testConfigurationService(){
+    public function testConfigurationService()
+    {
         $this->container->set('baz.config', ['a' => 'A', 'b' => 'B']);
 
-        $this->container->set('Baz', function($c){
+        $this->container->set('Baz', function ($c) {
             return new \App\Services\Baz($c->get('baz.config'));
         });
 
@@ -68,25 +74,26 @@ class ContainerTest extends TestCase
         $this->assertArrayHasKey('a', $serviceBaz->getConfig());
         $this->assertArrayHasKey('b', $serviceBaz->getConfig());
 
-        $this->assertEquals(['a' => 'A', 'b' => 'B'],$this->container->get('baz.config'));
-        $this->assertEquals(['a' => 'A', 'b' => 'B'],$this->container->get('Baz')->getConfig());
+        $this->assertEquals(['a' => 'A', 'b' => 'B'], $this->container->get('baz.config'));
+        $this->assertEquals(['a' => 'A', 'b' => 'B'], $this->container->get('Baz')->getConfig());
     }
 
-    public function testSuperBar(){
+    public function testSuperBar()
+    {
 
         $this->container->set('baz.config', ['a' => 'A', 'b' => 'B']);
-        $this->container->set('Baz', function($c){
+        $this->container->set('Baz', function ($c) {
             return new \App\Services\Baz($c->get('baz.config'));
         });
 
-        $this->container->set('Bar', function($c){
+        $this->container->set('Bar', function ($c) {
             return new \App\Services\Bar($c->get('Baz'));
-        } );
+        });
 
         $this->container->set('superbar.config', ['a' => 'A']);
 
-        $this->container->set('SuperBar', function($c){
-            return  new \App\Services\SuperBar($c->get('Bar'), $c->get('Baz'), $c->get('superbar.config'));
+        $this->container->set('SuperBar', function ($c) {
+            return new \App\Services\SuperBar($c->get('Bar'), $c->get('Baz'), $c->get('superbar.config'));
         });
 
         $serviceSuperBar = $this->container->get('SuperBar');
@@ -94,6 +101,21 @@ class ContainerTest extends TestCase
         $this->assertInstanceOf(
             SuperBar::class, $serviceSuperBar
         );
+    }
+
+    public function testStaticServiceUnique()
+    {
+        $this->container->set('Foo', function ($c) {
+            return new \App\Services\Foo();
+        });
+
+        $time1 = $this->container->singleton('Foo')->get();
+        sleep(1);
+
+        $time2 = $this->container->singleton('Foo')->get();
+        $this->assertEquals($time1, $time2);
+
+        $this->assertSame($time1, $time2);
     }
 
 }
